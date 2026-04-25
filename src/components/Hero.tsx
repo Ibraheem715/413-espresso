@@ -1,5 +1,7 @@
 'use client'
 import { m } from 'framer-motion'
+import { useRef, useEffect, useCallback } from 'react'
+
 const container = {
   hidden: {},
   visible: {
@@ -19,15 +21,39 @@ const item = {
 }
 
 export default function Hero() {
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  const tryPlay = useCallback(() => {
+    const v = videoRef.current
+    if (!v) return
+    v.muted = true
+    v.play().catch(() => {
+      // Autoplay blocked — video stays paused, hero still looks fine
+    })
+  }, [])
+
+  useEffect(() => {
+    tryPlay()
+    // Also retry on visibility change (e.g. user switches tabs and comes back)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') tryPlay()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [tryPlay])
+
   return (
     <section className="hero">
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video
+        ref={videoRef}
         className="hero-bg-video"
         src="/0424.mp4"
         autoPlay
         loop
         muted
         playsInline
+        preload="auto"
         aria-hidden="true"
       />
 
