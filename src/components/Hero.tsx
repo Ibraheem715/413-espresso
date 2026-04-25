@@ -1,6 +1,6 @@
 'use client'
 import { m } from 'framer-motion'
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect } from 'react'
 
 const container = {
   hidden: {},
@@ -21,41 +21,47 @@ const item = {
 }
 
 export default function Hero() {
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  const tryPlay = useCallback(() => {
-    const v = videoRef.current
-    if (!v) return
-    v.muted = true
-    v.play().catch(() => {
-      // Autoplay blocked — video stays paused, hero still looks fine
-    })
-  }, [])
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    tryPlay()
-    // Also retry on visibility change (e.g. user switches tabs and comes back)
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') tryPlay()
+    // Build the video element entirely outside React to avoid the
+    // React hydration bug that strips the `muted` attribute.
+    const wrapper = containerRef.current
+    if (!wrapper) return
+
+    const video = document.createElement('video')
+    video.className = 'hero-bg-video'
+    video.setAttribute('muted', '')
+    video.setAttribute('autoplay', '')
+    video.setAttribute('loop', '')
+    video.setAttribute('playsinline', '')
+    video.setAttribute('webkit-playsinline', '')
+    video.setAttribute('preload', 'auto')
+    video.setAttribute('aria-hidden', 'true')
+    video.muted = true
+    video.playsInline = true
+    video.loop = true
+    video.src = '/0424.mp4'
+
+    const tryPlay = () => {
+      video.muted = true
+      video.play().catch(() => {})
     }
-    document.addEventListener('visibilitychange', handleVisibility)
-    return () => document.removeEventListener('visibilitychange', handleVisibility)
-  }, [tryPlay])
+
+    video.addEventListener('loadeddata', tryPlay)
+    video.addEventListener('canplay', tryPlay)
+    wrapper.prepend(video)
+    tryPlay()
+
+    return () => {
+      video.removeEventListener('loadeddata', tryPlay)
+      video.removeEventListener('canplay', tryPlay)
+      video.remove()
+    }
+  }, [])
 
   return (
-    <section className="hero">
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <video
-        ref={videoRef}
-        className="hero-bg-video"
-        src="/0424.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        aria-hidden="true"
-      />
+    <section className="hero" ref={containerRef}>
 
       <m.div
         className="hero-circle"
