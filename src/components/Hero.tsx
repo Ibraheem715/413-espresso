@@ -21,47 +21,32 @@ const item = {
 }
 
 export default function Hero() {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
-    // Build the video element entirely outside React to avoid the
-    // React hydration bug that strips the `muted` attribute.
-    const wrapper = containerRef.current
-    if (!wrapper) return
-
-    const video = document.createElement('video')
-    video.className = 'hero-bg-video'
-    video.setAttribute('muted', '')
-    video.setAttribute('autoplay', '')
-    video.setAttribute('loop', '')
-    video.setAttribute('playsinline', '')
-    video.setAttribute('webkit-playsinline', '')
-    video.setAttribute('preload', 'auto')
-    video.setAttribute('aria-hidden', 'true')
-    video.muted = true
-    video.playsInline = true
-    video.loop = true
-    video.src = '/0424.mp4'
-
-    const tryPlay = () => {
-      video.muted = true
-      video.play().catch(() => {})
-    }
-
-    video.addEventListener('loadeddata', tryPlay)
-    video.addEventListener('canplay', tryPlay)
-    wrapper.prepend(video)
-    tryPlay()
-
-    return () => {
-      video.removeEventListener('loadeddata', tryPlay)
-      video.removeEventListener('canplay', tryPlay)
-      video.remove()
-    }
+    const v = videoRef.current
+    if (!v) return
+    // Force muted attribute directly on the DOM element to bypass React hydration bug
+    v.setAttribute('muted', '')
+    v.setAttribute('autoplay', '')
+    v.setAttribute('playsinline', '')
+    v.muted = true
+    v.play().catch(() => {})
   }, [])
 
   return (
-    <section className="hero" ref={containerRef}>
+    <section className="hero">
+      <video
+        ref={videoRef}
+        className="hero-bg-video"
+        src="/0424.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+      />
 
       <m.div
         className="hero-circle"
