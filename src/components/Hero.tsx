@@ -1,7 +1,5 @@
 'use client'
 import { m } from 'framer-motion'
-import { useRef, useEffect } from 'react'
-
 const container = {
   hidden: {},
   visible: {
@@ -21,20 +19,14 @@ const item = {
 }
 
 export default function Hero() {
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.muted = true
-  }, [])
-
   return (
     <section className="hero">
       <video
-        ref={videoRef}
         className="hero-bg-video"
         src="/0424.mp4"
         autoPlay
         loop
+        muted
         playsInline
         aria-hidden="true"
       />
